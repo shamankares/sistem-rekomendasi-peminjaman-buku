@@ -12,7 +12,8 @@ def create_collection_types_per_month_df(df):
   return pinjaman_bulanan_by_tipe_koleksi.reset_index().melt(id_vars='Tgl Pinjam', var_name='Tipe Koleksi', value_name='Banyak Pinjaman')
 
 def create_borrow_duration_df(df):
-  pass
+  lama_peminjaman = (df['Tgl Kembali'] - df['Tgl Pinjam']).dt.days
+  return lama_peminjaman
 
 def create_borrower_by_faculty_per_month_df(df):
   pinjaman_bulanan_by_fakultas = df.groupby([pd.Grouper(key='Tgl Pinjam', freq='M'), 'Fakultas Pemustaka'])['Nomor Buku'].count().unstack(fill_value=0)
@@ -55,6 +56,14 @@ st.subheader('Jumlah Pinjaman Berdasarkan Tipe Koleksi per Bulan')
 st.pyplot(fig)
 
 # Visualisasi durasi pinjaman
+df_borrow_duration = create_borrow_duration_df(df_pinjaman)
+
+fig = plt.figure(figsize=(12, 20))
+sns.boxplot(y=df_borrow_duration)
+plt.title('Lama Peminjaman')
+
+st.subheader('Durasi Peminjaman')
+st.pyplot(fig)
 
 # Visualisasi jumlah pinjaman berdasarkan fakultas peminjam per bulan
 df_borrower_by_faculty_per_month = create_borrower_by_faculty_per_month_df(df_pinjaman)
