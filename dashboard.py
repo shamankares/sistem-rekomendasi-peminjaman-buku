@@ -7,7 +7,9 @@ from mlxtend.frequent_patterns import apriori
 from mlxtend.frequent_patterns import association_rules
 
 def create_collection_types_per_month_df(df):
-  pass
+  pinjaman_bulanan_by_tipe_koleksi = df.groupby([pd.Grouper(key='Tgl Pinjam', freq='M'), 'Tipe Koleksi'],)['Nomor Buku'].nunique().unstack(fill_value=0)
+  pinjaman_bulanan_by_tipe_koleksi.index = pinjaman_bulanan_by_tipe_koleksi.index.month_name()
+  return pinjaman_bulanan_by_tipe_koleksi.reset_index().melt(id_vars='Tgl Pinjam', var_name='Tipe Koleksi', value_name='Banyak Pinjaman')
 
 def create_borrow_duration_df(df):
   pass
@@ -41,6 +43,16 @@ for kolom in kolom_tgl:
     df_pinjaman[kolom] = pd.to_datetime(df_pinjaman[kolom], format='%Y-%m-%d', errors='coerce')
 
 # Visualisasi jumlah pinjaman berdasarkan tipe koleksi per bulan
+df_borrow_by_tipe_koleksi_per_month = create_collection_types_per_month_df(df_pinjaman)
+
+fig = plt.figure(figsize=(12, 5))
+sns.barplot(data=df_borrow_by_tipe_koleksi_per_month, x='Tgl Pinjam', y='Banyak Pinjaman', hue='Tipe Koleksi', palette='bright')
+plt.title('Banyak Pinjaman Berdasarkan Tipe Koleksi')
+plt.xlabel('Bulan Peminjaman')
+plt.xticks(rotation=0)
+
+st.subheader('Jumlah Pinjaman Berdasarkan Tipe Koleksi per Bulan')
+st.pyplot(fig)
 
 # Visualisasi durasi pinjaman
 
