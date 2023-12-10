@@ -43,6 +43,8 @@ kolom_tgl = ['Tgl Pinjam', 'Tgl Kembali']
 for kolom in kolom_tgl:
     df_pinjaman[kolom] = pd.to_datetime(df_pinjaman[kolom], format='%Y-%m-%d', errors='coerce')
 
+st.header('Sistem Rekomendasi Peminjaman Buku :book:')
+
 # Visualisasi jumlah pinjaman berdasarkan tipe koleksi per bulan
 df_borrow_by_tipe_koleksi_per_month = create_collection_types_per_month_df(df_pinjaman)
 
