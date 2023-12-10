@@ -85,7 +85,8 @@ support = st.slider(
   label='Support',
   min_value=0.001,
   max_value=0.050,
-  step=0.0001
+  step=0.0001,
+  format="%4f"
 )
 df_freq = create_support_df(create_transactions_df(df_pinjaman), support)
 st.dataframe(df_freq)
@@ -94,7 +95,7 @@ lift_threshold = st.slider(
   label='Lift Threshold',
   min_value=0.1,
   max_value=5.0,
-  step=0.1
+  step=0.1,
 )
 assc_by_lift_df = create_association_by_lift_df(df_freq, lift_threshold)
 st.dataframe(assc_by_lift_df)
