@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
+from mlxtend.frequent_patterns import apriori
+from mlxtend.frequent_patterns import association_rules
 
 def create_collection_types_per_month_df(df):
   pass
@@ -16,7 +18,18 @@ def create_borrower_by_faculty_per_month_df(df):
   return pinjaman_bulanan_by_fakultas.reset_index().melt(id_vars='Tgl Pinjam', var_name='Fakultas', value_name='Banyak Pinjaman')
 
 def create_transactions_df(df):
-  pass
+  return df.groupby(by=['Nama Pemustaka', 'Tgl Pinjam', 'Judul Buku'])['Jumlah'].count().unstack(2).reset_index(['Nama Pemustaka', 'Tgl Pinjam'], drop=True).fillna(0).map(lambda x: bool(x))
+
+def create_support_df(df, support):
+  if support == 0.0:
+    support = 0
+
+  freq = apriori(df, min_support=support, use_colnames=True)
+  return freq
+
+def create_association_by_lift_df(df_freq, lift_threshold):
+  assoc = association_rules(df_freq, metric='lift', min_threshold=lift_threshold)
+  return assoc
 
 ### MAIN PROGRAM
 df_pinjaman = pd.read_csv('daftar-peminjaman-2022.csv')
@@ -44,17 +57,21 @@ st.subheader('Jumlah Peminjaman Berdasarkan Fakultas Peminjam per Bulan')
 st.pyplot(fig)
 
 # Analisis Asosiasi
+st.subheader('Analisis Asosiasi')
 support = st.slider(
   label='Support',
-  min_value=0.0,
-  max_value=0.05,
+  min_value=0.001,
+  max_value=0.050,
   step=0.0001
 )
-st.write("Support:", support)
+df_freq = create_support_df(create_transactions_df(df_pinjaman), support)
+st.dataframe(df_freq)
 
 lift_threshold = st.slider(
   label='Lift Threshold',
-  min_value=0,
-  max_value=10,
+  min_value=0.1,
+  max_value=5.0,
+  step=0.1
 )
-st.write("Lift Threshold:", lift_threshold)
+assc_by_lift_df = create_association_by_lift_df(df_freq, lift_threshold)
+st.dataframe(assc_by_lift_df)
