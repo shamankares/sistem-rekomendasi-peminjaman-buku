@@ -1,4 +1,4 @@
-import numpy as numpy
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -33,6 +33,9 @@ def create_support_df(df, support):
 def create_association_by_lift_df(df_freq, lift_threshold):
   assoc = association_rules(df_freq, metric='lift', min_threshold=lift_threshold)
   return assoc
+
+def create_recommendations(assoc_df, book):
+  return assoc_df[assoc_df['antecedents'] == frozenset({book})]['consequents'].explode().unique()
 
 ### MAIN PROGRAM
 df_pinjaman = pd.read_csv('daftar-peminjaman-2022.csv')
@@ -81,6 +84,12 @@ st.pyplot(fig)
 
 # Analisis Asosiasi
 st.subheader('Analisis Asosiasi')
+
+daftar_fakultas = df_pinjaman['Fakultas Pemustaka'].unique()
+daftar_fakultas = np.insert(daftar_fakultas, 0, 'Semua')
+fakultas = st.selectbox('Pilih fakultas:', daftar_fakultas)
+df_pinjaman_fakultas = df_pinjaman if fakultas == 'Semua' else df_pinjaman[df_pinjaman['Fakultas Pemustaka'] == fakultas]
+
 support = st.slider(
   label='Support',
   min_value=0.001,
@@ -88,14 +97,22 @@ support = st.slider(
   step=0.0001,
   format="%4f"
 )
-df_freq = create_support_df(create_transactions_df(df_pinjaman), support)
-st.dataframe(df_freq)
+df_transaksi = create_transactions_df(df_pinjaman_fakultas)
+df_freq = create_support_df(df_transaksi, support)
+st.dataframe(df_freq, use_container_width=True)
 
 lift_threshold = st.slider(
   label='Lift Threshold',
-  min_value=0.1,
+  min_value=1.0,
   max_value=5.0,
   step=0.1,
 )
 assc_by_lift_df = create_association_by_lift_df(df_freq, lift_threshold)
-st.dataframe(assc_by_lift_df)
+st.dataframe(assc_by_lift_df, use_container_width=True)
+
+# Rekomendasi Peminjaman
+st.subheader('Rekomendasi Peminjaman')
+
+buku = st.selectbox('Judul buku:', df_transaksi.columns)
+st.write('Rekomendasi buku:')
+st.dataframe(create_recommendations(assc_by_lift_df, buku), use_container_width=True)
